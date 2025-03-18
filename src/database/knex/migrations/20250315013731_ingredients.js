@@ -1,7 +1,7 @@
 exports.up = knex => knex.schema.createTable("ingredients", table => {
   table.increments("id").primary();
 
-  table.integer("dishes_id").references("id").inTable("dishes")
+  table.integer("dishes_id").references("id").inTable("dishes").onDelete("CASCADE")
 
   table.text("name").notNullable()
   table.datetime('created_at').defaultTo(knex.fn.now())
