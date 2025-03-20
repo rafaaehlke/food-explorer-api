@@ -40,16 +40,6 @@ class DishController {
     });
   }
 
-  async delete(request, response) {
-    const { id } = request.params;
-
-    await knex("dishes").where({ id }).delete();
-
-    return response.json({
-      message: "Prato excluido."
-    });
-  }
-
   async index(request, response) {
     const { user_id, name, category } = request.query;
 
@@ -97,8 +87,20 @@ class DishController {
       };
     });
 
-    return response.json(dishesWithIngredients)
+    return response.json(dishesWithIngredients);
   }
+
+  async delete(request, response) {
+    const { id } = request.params;
+
+    await knex("dishes").where({ id }).delete();
+
+    return response.json({
+      message: "Prato excluido."
+    });
+  }
+
+
 
 }
 
