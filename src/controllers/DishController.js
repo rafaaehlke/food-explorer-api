@@ -2,7 +2,7 @@ const knex = require("../database/knex")
 
 class DishController {
   async create(request, response) {
-    const { image, name, category, price, description } = request.body
+    const { image, name, category, price, description } = request.body;
     const { user_id } = request.params;
 
     const [dishes_id] = await knex("dishes").insert({
@@ -46,7 +46,7 @@ class DishController {
     let dishes;
 
     if (category) {
-      const filterIngredients = category.split(",").map(name => category.trim())
+      const filterIngredients = category.split(",").map(name => category.trim());
 
       dishes = await knex("ingredients")
         .select([
@@ -61,7 +61,7 @@ class DishController {
         .whereLike("dishes.name", `%${name}%`)
         .whereIn("ingredients.name", filterIngredients)
         .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
-        .orderBy("dishes.name")
+        .orderBy("dishes.name");
 
     } else {
 
@@ -99,8 +99,6 @@ class DishController {
       message: "Prato excluido."
     });
   }
-
-
 
 }
 
