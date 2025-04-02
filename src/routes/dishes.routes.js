@@ -1,5 +1,6 @@
 const { Router } = require("express"); 
 const ensureAuthenticator = require("../middlewares/ensureAuthenticator");
+const verifyUserAdmin = require("../middlewares/verifyUserAdmin")
 
 const dishRoutes = Router(); 
 
@@ -14,10 +15,10 @@ const upload = multer(uploadConfig.MULTER);
 
 dishRoutes.use(ensureAuthenticator);
 dishRoutes.get("/", dishController.index); 
-dishRoutes.post("/", dishController.create); 
+dishRoutes.post("/", verifyUserAdmin("admin"), dishController.create); 
 dishRoutes.get("/:id", dishController.show); 
-dishRoutes.delete("/:id", dishController.delete); 
-dishRoutes.patch("/:id/pictureDish", ensureAuthenticator, upload.single("pictureDish"), dishController.update)
+dishRoutes.delete("/:id", verifyUserAdmin("admin"), dishController.delete); 
+dishRoutes.patch("/:id/pictureDish", verifyUserAdmin("admin"), ensureAuthenticator, upload.single("pictureDish"), dishController.update)
 
 
 
