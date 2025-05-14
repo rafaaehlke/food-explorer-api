@@ -24,7 +24,9 @@ class SessionController {
     const token = sign({ role: user.role }, secret, {
       subject: String(user.id),
       expiresIn
-    })
+    }); 
+
+    delete user.password;
 
     return response.json({ user, token });
   }
