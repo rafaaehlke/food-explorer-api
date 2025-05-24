@@ -46,13 +46,13 @@ class DishController {
   }
 
   async index(request, response) {
-    const { name, category } = request.query;
+    const { name, ingredients } = request.query;
     const user_id = request.user.id;
 
     let dishes;
 
-    if (category) {
-      const filterIngredients = category.split(",").map(name => category.trim());
+    if (ingredients) {
+      const filterIngredients = ingredients.split(",").map(name => ingredients.trim());
 
       dishes = await knex("ingredients")
         .select([
@@ -60,7 +60,7 @@ class DishController {
           "dishes.name",
           "dishes.price",
           "dishes.description",
-          "dishes.category",
+          "dishes.ingredients",
           "dishes.created_at",
         ])
         .where("dishes.user_id", user_id) //
@@ -89,7 +89,7 @@ class DishController {
 
       return {
         ...dish,
-        category: dishIngredients.map(ingredients => ingredients.name) // Adicionando os ingredientes na chave category
+        ingredients: dishIngredients.map(ingredients => ingredients.name) // Adicionando os ingredientes na chave category
       };
     });
 
