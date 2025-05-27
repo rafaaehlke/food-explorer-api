@@ -18,7 +18,7 @@ dishRoutes.get("/", dishController.index);
 dishRoutes.post("/", verifyUserAdmin("admin"), upload.single("image"), dishController.create); 
 dishRoutes.get("/:id", dishController.show); 
 dishRoutes.delete("/:id", verifyUserAdmin("admin"), dishController.delete); 
-dishRoutes.patch("/:id/pictureDish", verifyUserAdmin("admin"), ensureAuthenticator, upload.single("pictureDish"), dishController.update)
+dishRoutes.patch("/:id", verifyUserAdmin("admin"), upload.single("image"), dishController.update)
 
 
 
