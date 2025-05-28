@@ -46,54 +46,64 @@ class DishController {
   }
 
   async index(request, response) {
-    const { name, ingredients } = request.query;
-    const user_id = request.user.id;
+    const { search } = request.query;
+    console.log(request.user)
 
     let dishes;
 
-    if (ingredients) {
-      const filterIngredients = ingredients.split(",").map(name => ingredients.trim());
+    if (search) {
 
-      dishes = await knex("ingredients")
-        .select([
-          "dishes.id",
-          "dishes.name",
-          "dishes.price",
-          "dishes.description",
-          "dishes.ingredients",
-          "dishes.created_at",
-        ])
-        .where("dishes.user_id", user_id) //
-        .whereLike("dishes.name", `%${name}%`)
-        .whereIn("ingredients.name", filterIngredients)
+      // Método 1 para fazer busca pela palavra chave
+      {   // dishes = await knex("dishes")
+      //   .whereLike("dishes.name", `%${search}%`)
+
+
+            // se n tiver prato com o nome, busca por ingredientes
+      // if (dishes.length === 0) {
+      //   dishes = await knex("ingredients")
+      //     .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
+      //     .whereLike("ingredients.name", `%${search}%`)
+      // }
+      }
+
+      const dishes = await knex("ingredients")
         .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
-        .orderBy("dishes.name");
+        .whereLike("dishes.name", `%${search}%`)
+        .orWhereLike("ingredients.name", `%${search}%`)
+        .distinct("dishes.id", "dishes.name", "dishes.description"); 
+
+      const dishesIngredients = await knex("ingredients")
+        .select("ingredients.name", "ingredients.dishes_id")
+        .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
+
+      const dishesWithIngredients = dishes.map(dish => {
+        const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dishes_id === dish.id);
+
+        return {
+          ...dish,
+          ingredients: dishIngredients.map(ingredients => ingredients.name) // Adicionando os ingredientes na chave category
+        };
+      });
+      return response.json(dishesWithIngredients);
 
     } else {
-
       dishes = await knex("dishes")
-        .where({ user_id }) // busca por id
-        .whereLike("name", `%${name}%`)  //busca palavra chave
-        .orderBy("name"); // organiza por ordem alfabética
 
+      const dishesIngredients = await knex("ingredients")
+        .select("ingredients.name", "ingredients.dishes_id")
+        .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
+
+      // Associando ingredientes aos pratos
+      const dishesWithIngredients = dishes.map(dish => {
+        const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dishes_id === dish.id);
+
+        return {
+          ...dish,
+          ingredients: dishIngredients.map(ingredients => ingredients.name) // Adicionando os ingredientes na chave category
+        };
+      });
+      return response.json(dishesWithIngredients);
     }
-
-    const dishesIngredients = await knex("ingredients")
-      .select("ingredients.name", "ingredients.dishes_id")
-      .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
-      .where("dishes.user_id", user_id); // Fazendo o join e filtrando pelos pratos do usuário
-
-    // Associando ingredientes aos pratos
-    const dishesWithIngredients = dishes.map(dish => {
-      const dishIngredients = dishesIngredients.filter(ingredient => ingredient.dishes_id === dish.id);
-
-      return {
-        ...dish,
-        ingredients: dishIngredients.map(ingredients => ingredients.name) // Adicionando os ingredientes na chave category
-      };
-    });
-
-    return response.json(dishesWithIngredients);
   }
 
   async update(request, response) {
@@ -148,7 +158,7 @@ class DishController {
 
       await knex("ingredients").insert(ingredientsInsert);
     }
-    
+
     return response.json({ message: "Prato atualizado com sucesso!" });
   }
 
