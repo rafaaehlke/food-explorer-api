@@ -1,29 +1,41 @@
 const knex = require("../database/knex")
 const AppError = require("../utils/AppError")
 const DiskStorage = require("../providers/DiskStorage");
+const { diskStorage } = require("multer");
 
 class DishController {
   async create(request, response) {
     const { name, category, ingredients, price, description } = request.body;
     const user_id = request.user.id;
 
-    const image = request.file?.filename;
+    const imageFileName = request.file?.filename;
+
+    const diskStorage = new DiskStorage();
+
+    let filename;
+    if (imageFileName) {
+      filename = await diskStorage.saveFile(imageFileName);
+    }
+
+    let ingredientsArray = ingredients;
+    if (!Array.isArray(ingredientsArray)) {
+      ingredientsArray = [ingredientsArray];
+    }
 
     const [dishes_id] = await knex("dishes").insert({
       user_id,
-      image,
+      image: filename,
       name,
       category,
       price,
       description
     });
 
-    const ingredientsInsert = ingredients.map(name => {
-      return {
-        dishes_id,
-        name
-      }
-    });
+    const ingredientsInsert = ingredientsArray.map(name => ({
+      dishes_id,
+      name
+    }));
+
 
     await knex("ingredients").insert(ingredientsInsert);
 
@@ -47,7 +59,6 @@ class DishController {
 
   async index(request, response) {
     const { search } = request.query;
-    console.log(request.user)
 
     let dishes;
 
@@ -55,22 +66,22 @@ class DishController {
 
       // Método 1 para fazer busca pela palavra chave
       {   // dishes = await knex("dishes")
-      //   .whereLike("dishes.name", `%${search}%`)
+        //   .whereLike("dishes.name", `%${search}%`)
 
 
-            // se n tiver prato com o nome, busca por ingredientes
-      // if (dishes.length === 0) {
-      //   dishes = await knex("ingredients")
-      //     .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
-      //     .whereLike("ingredients.name", `%${search}%`)
-      // }
+        // se n tiver prato com o nome, busca por ingredientes
+        // if (dishes.length === 0) {
+        //   dishes = await knex("ingredients")
+        //     .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
+        //     .whereLike("ingredients.name", `%${search}%`)
+        // }
       }
 
       const dishes = await knex("ingredients")
         .innerJoin("dishes", "dishes.id", "ingredients.dishes_id")
         .whereLike("dishes.name", `%${search}%`)
         .orWhereLike("ingredients.name", `%${search}%`)
-        .distinct("dishes.id", "dishes.name", "dishes.description"); 
+        .distinct("dishes.id", "dishes.name", "dishes.description");
 
       const dishesIngredients = await knex("ingredients")
         .select("ingredients.name", "ingredients.dishes_id")
