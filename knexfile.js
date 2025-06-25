@@ -11,6 +11,9 @@ module.exports = {
     migrations: {
       directory: path.resolve(__dirname, "src", "database", "knex", "migrations")
     },
+      seeds: {
+      directory: path.resolve(__dirname, "src", "database", "knex", "seeds"),
+    },
     useNullAsDefault: true
   }
 };
